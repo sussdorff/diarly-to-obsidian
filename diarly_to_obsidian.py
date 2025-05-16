@@ -26,18 +26,27 @@ class DiarlyToObsidianConverter:
         self.attachments_dir = self.target_dir / "Attachments"
         self.templates_dir = self.target_dir / "_templates"
         
-        # Journal name to tag mapping
+        # Journal name to tag mapping (customize as needed)
         self.journal_tags = {
-            "Tagebuch": "personal",
-            "Work Highlights": "work-highlights",
-            "CST Learning Diary": "cst-learning-diary",
-            "Responsibility Process": "responsibility-process",
-            "7-Day Mindfulness Challenge": "7-day-mindfulness-challenge",
-            "14-Day Mindfulness Challenge": "14-day-mindfulness-challenge",
-            "Technical Learning": "technical-learning",
-            "Business Ideen": "business-ideen"
+            "Work Journal": "work",
+            "Personal": "personal",
+            # Add your custom mappings here
+            # "Journal Name": "tag-name",
         }
         
+    def journal_to_tag(self, journal_name):
+        """Convert journal name to tag format"""
+        if journal_name in self.journal_tags:
+            return self.journal_tags[journal_name]
+        
+        # Auto-convert: lowercase, replace spaces with hyphens, remove special characters
+        tag = journal_name.lower()
+        tag = re.sub(r'[^\w\s-]', '', tag)  # Remove special characters
+        tag = re.sub(r'\s+', '-', tag)      # Replace spaces with hyphens
+        tag = re.sub(r'-+', '-', tag)       # Replace multiple hyphens with single
+        tag = tag.strip('-')                # Remove leading/trailing hyphens
+        return tag
+    
     def load_metadata(self):
         """Load Diarly metadata from JSON file"""
         metadata_path = self.source_dir / "diarly_meta.json"
@@ -180,8 +189,9 @@ tags: [daily-note]
         
         # Build tags array
         tags = ["daily-note"]
-        if journal_name in self.journal_tags:
-            tags.append(self.journal_tags[journal_name])
+        journal_tag = self.journal_to_tag(journal_name)
+        if journal_tag:
+            tags.append(journal_tag)
         tags.extend(hashtags)
         
         # Create YAML frontmatter
